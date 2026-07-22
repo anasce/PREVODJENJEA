@@ -8,4 +8,5 @@ unique_ids:
   modules:
     Layouts: NKF6DTYMFZUBZLPVJ7K4MLMWVAKPCPTV
   scripts: {}
-  server_modules: {}
+  server_modules:
+    ServerModule1: '178474156170681523592898.69904'
