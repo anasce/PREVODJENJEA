@@ -1,4 +1,5 @@
 allow_embedding: false
+metadata: {logo_img: 'https://cdn-icons-png.flaticon.com/128/6983/6983445.png'}
 name: Prevođenje ei
 package_name: Prevo_enje_ei
 runtime_options:
