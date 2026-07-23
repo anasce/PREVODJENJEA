@@ -11,7 +11,7 @@ class Form1(Form1Template):
     """This method is called when the button is clicked"""
     #self.text_area_2.text=self.text_area_1.text
     # 2. Call the server function and store the returned value
-    result = anvil.server.call('process_data', text=self.text_area_1.text)
+    result = anvil.server.call('ijekavizuj_tekst', ulazni_tekst=self.text_area_1.text)
 
     # 3. Use the result in your UI
     self.text_area_2.text = result

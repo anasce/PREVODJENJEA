@@ -1,65 +1,204 @@
 import anvil.server
-import sys
-import os
-import re
-EXACT = [
-  # ── special / user-defined irregulars ──
-  ("pevac",               "kokot"),           # rooster: kokot, not pjevac
-  ("sutra",               "śutra"),
 
-  # ── compound & longer forms ──
-  ("neravnomerno",        "neravnomjerno"),
-  ("bezbednost",          "bezbjednost"),
-  ("predsedništvo",       "predsjedništvo"),
-  ("posedovanje",         "posjedovanje"),
-  ("povređivanje",        "povrjeđivanje"),   # fixed: povrje-, not povri-
-  ("povređen",            "povrjeđen"),
-  ("poslepodne",          "poslijepodne"),
-  ("poslediplomski",      "posljediplomski"),
-  ("posledično",          "posljedično"),
-  ("razumevanja",         "razumijevanja"),
-  ("unapredite",          "unaprijedite"),
-  ("izbegavajte",         "izbjegavajte"),
-  ("posećujete",          "posjećujete"),
-  ("razgovetno",          "razgovjetno"),
-  ("razumeti",            "razumjeti"),
-  ("preterano",           "pretjerano"),
-  ("promenite",           "promijenite"),
-  ("vrednosti",           "vrijednosti"),
-  ("smernice",            "smjernice"),
-  ("veštine",             "vještine"),
-  ("uspešno",             "uspješno"),
-  ("sledeći",             "sljedeći"),
-  ("umesto",              "umjesto"),
-  ("namesto",             "namjesto"),
-  ("zahtevati",           "zahtijevati"),
-  ("zahteva",             "zahtijeva"),
-  ("saveta",              "savjeta"),
-  ("saveti",              "savjeti"),
-  ("dečaštvo",            "dječaštvo"),
-  ("dečija",              "dječija"),
-  ("smešan",              "smiješan"),
-  ("nepoverenje",         "nepovjerenje"),
-  ("nepoverljivo",        "nepovjerljivo"),
-  ("nepoverljiv",         "nepovjerljiv"),
-  ("poverovati",          "povjerovati"),
-  ("poverenje",           "povjerenje"),
-  ("devojka",             "djevojka"),
-  ("namera",              "namjera"),
-  ("nasmešiti",           "nasmiješiti"),
-  ("pobediti",            "pobijediti"),
-  ("pobeditelj",          "pobjeditelj"),
-  ("pobednik",            "pobjednik"),
-  ("pobeda",              "pobjeda"),
+# This is a server module. It runs on the Anvil server,
+# rather than in the user's browser.
+#
+# To allow anvil.server.call() to call functions here, we mark
+# them with @anvil.server.callable.
+# Here is an example - you can replace it with your own:
+#
+# @anvil.server.callable
+# def say_hello(name):
+#   print("Hello, " + name + "!")
+#   return 42
+#
+import sys, os, re
+import anvil.server  # Ključno za Anvil
+
+EXACT = [
+  ("pevac",               "kokot"),
+  ("sutra",               "śutra"),
+  ("čovečanstvo",         "čovječanstvo"),
+  ("detinjstvu",          "djetinjstvu"),
+  ("detinjstva",          "djetinjstva"),
+  ("detinjstvo",          "djetinjstvo"),
+  ("neuspesima",          "neuspjesima"),
+  ("neuspeha",            "neuspjeha"),
+  ("neuspehe",            "neuspjehe"),
+  ("neuspesi",            "neuspjesi"),
+  ("neuspeh",             "neuspjeh"),
+  ("zabeležili",          "zabilježili"),
+  ("zabeležio",           "zabilježio"),
+  ("zabeležen",           "zabilježen"),
+  ("zabeleže",            "zabilježe"),
+  ("poverljivu",          "povjerljivu"),
+  ("poverljiv",           "povjerljiv"),
+  ("nameštanja",          "namještanja"),
+  ("nameštanje",          "namještanje"),
+  ("bezbednosti",         "bezbjednosti"),
+  ("poslednjeg",          "posljednjeg"),
+  ("poslednje",           "posljednje"),
+  ("dodeljivanja",        "dodjeljivanja"),
+  ("dodeljena",           "dodijeljena"),
+  ("dodele",              "dodjele"),
+  ("dodeliti",            "dodijeliti"),
+  ("dodelio",             "dodijelio"),
+  ("zahtevala",           "zahtijevala"),
+  ("obletevši",           "obletjevši"),
+  ("obavešteno",          "obavješteno"),
+  ("dragocena",           "dragocjena"),
+  ("dragoceno",           "dragocjeno"),
+  ("dragocen",            "dragocjen"),
+  ("posleratni",          "poslijeratni"),
+  ("posleratnog",         "poslijeratnog"),
+  ("sledeće",             "sljedeće"),
+  ("sledeća",             "sljedeća"),
+  ("pobedile",            "pobijedile"),
+  ("pobedili",            "pobijedili"),
+  ("verovatno",           "vjerovatno"),
+  ("verovali",            "vjerovali"),
+  ("verovala",            "vjerovala"),
+  ("pretnji",             "prijetnji"),
+  ("pretnje",             "prijetnje"),
+  ("pretnja",             "prijetnja"),
+  ("naslednika",          "nasljednika"),
+  ("doneli",              "donijeli"),
+  ("zamenila",            "zamijenila"),
+  ("smenjen",             "smijenjen"),
+  ("smeniti",             "smijeniti"),
+  ("smene",               "smjene"),
+  ("poletela",            "poletjela"),
+  ("proletela",           "proletjela"),
+  ("proleteo",            "proletio"),
+  ("uzletela",            "uzletjela"),
+  ("letele",              "letjele"),
+  ("leteo",               "letio"),
+  ("sletanje",            "slijetanje"),
+  ("sletanja",            "slijetanja"),
+  ("sletanjem",           "slijetanjem"),
+  ("sletanju",            "slijetanju"),
+  ("sleteli",             "sletjeli"),
+  ("sletela",             "sletjela"),
+  ("sleteti",             "sletjeti"),
+  ("sleteo",              "sletio"),
+  ("slete",               "slijete"),
+  ("sleti",               "slijeti"),
+  ("pobede",              "pobjede"),
+  ("podeljene",           "podijeljene"),
+  ("podeljena",           "podijeljena"),
+  ("podeljen",            "podijeljen"),
+  ("podele",              "podjele"),
+  ("nerešeni",            "neriješeni"),
+    ("razrešen",            "razriješen"),
+    ("reše",                "riješe"),
+    ("predela",             "predjela"),
+    ("posedovanja",         "posjedovanja"),
+    ("izvestio",            "izvijestio"),
+    ("vesti",               "vijesti"),
+    ("dece",                "djece"),
+    ("zamenu",              "zamjenu"),
+    ("odela",               "odijela"),
+    ("odelo",               "odijelo"),
+    ("odeća",               "odjeća"),
+    ("deo",                 "dio"),
+    ("neuspešno",           "neuspješno"),
+    ("predsednika",         "predsjednika"),
+    ("pobedila",            "pobijedila"),
+    ("pobedio",             "pobijedio"),
+    ("primene",             "primjene"),
+    ("primena",             "primjena"),
+    ("primer",              "primjer"),
+    ("celina",              "cjelina"),
+    ("nedelje",             "nedjelje"),
+    ("obletela",            "obletjela"),
+    ("volelo",              "voljelo"),
+    ("volela",              "voljela"),
+    ("povređeno",           "povrijeđeno"),
+    ("svedočanstvo",        "svjedočanstvo"),
+    ("svedočenje",          "svjedočenje"),
+    ("nasledništvo",        "nasljedništvo"),
+    ("naslednica",          "nasljednica"),
+    ("naslednik",           "nasljednik"),
+    ("celovitost",          "cjelovitost"),
+    ("celovito",            "cjelovito"),
+    ("celovit",             "cjelovit"),
+    ("vrednost",            "vrijednost"),
+    ("vrednovanje",         "vrjednovanje"),
+    ("vredan",              "vrijedan"),
+    ("verodostojan",        "vjerodostojan"),
+    ("verovati",            "vjerovati"),
+    ("vernost",             "vjernost"),
+    ("verno",               "vjerno"),
+    ("veran",               "vjeran"),
+    ("bezbednim",           "bezbjednim"),
+    ("bezbedna",            "bezbjedna"),
+    ("bezbedno",            "bezbjedno"),
+    ("rešenja",             "rješenja"),
+    ("rešenje",             "rješenje"),
+    ("predeo",              "predio"),
+    ("zamena",              "zamjena"),
+    ("smena",               "smjena"),
+    ("promenio",            "promijenio"),
+    ("promenila",           "promijenila"),
+    ("promenilo",           "promijenilo"),
+    ("promene",             "promjene"),
+    ("promena",             "promjena"),
+    ("izmenio",             "izmijenio"),
+    ("zamenio",             "zamijenio"),
+    ("menjao",              "mijenjao"),
+    ("prisetiti",           "prisjetiti"),
+    ("prisećanje",          "prisjećanje"),
+    ("neravnomerno",        "neravnomjerno"),
+    ("bezbednost",          "bezbjednost"),
+    ("predsedništvo",       "predsjedništvo"),
+    ("posedovanje",         "posjedovanje"),
+    ("povređivanje",        "povrjeđivanje"),
+    ("povređen",            "povrijeđen"),
+    ("poslepodne",          "poslijepodne"),
+    ("poslediplomski",      "posljediplomski"),
+    ("posledično",          "posljedično"),
+    ("razumevanja",         "razumijevanja"),
+    ("unapredite",          "unaprijedite"),
+    ("izbegavajte",         "izbjegavajte"),
+    ("posećujete",          "posjećujete"),
+    ("razgovetno",          "razgovjetno"),
+    ("razumeti",            "razumjeti"),
+    ("preterano",           "pretjerano"),
+    ("promenite",           "promijenite"),
+    ("vrednosti",           "vrijednosti"),
+    ("smernice",            "smjernice"),
+    ("veštine",             "vještine"),
+    ("uspešno",             "uspješno"),
+    ("sledeći",             "sljedeći"),
+    ("umesto",              "umjesto"),
+    ("namesto",             "namjesto"),
+    ("zahtevati",           "zahtijevati"),
+    ("zahteva",             "zahtijeva"),
+    ("saveta",              "savjeta"),
+    ("saveti",              "savjeti"),
+    ("dečaštvo",            "dječaštvo"),
+    ("dečija",              "dječija"),
+    ("smešan",              "smiješan"),
+    ("nepoverenje",         "nepovjerenje"),
+    ("nepoverljivo",        "nepovjerljivo"),
+    ("nepoverljiv",         "nepovjerljiv"),
+    ("poverovati",          "povjerovati"),
+    ("poverenje",           "povjerenje"),
+    ("devojka",             "djevojka"),
+    ("namera",              "namjera"),
+    ("nasmešiti",           "nasmiješiti"),
+    ("pobediti",            "pobijediti"),
+    ("pobeditelj",          "pobjeditelj"),
+    ("pobednik",            "pobjednik"),
+    ("pobeda",              "pobjeda"),
     ("doneti",              "donijeti"),
     ("grešiti",             "griješiti"),
-    # grešnik intentionally omitted — stays grešnik
     ("izmenjivač",          "izmjenjivač"),
     ("menjačnica",          "mjenjačnica"),
     ("menjati",             "mijenjati"),
     ("bežanija",            "bježanija"),
     ("bežati",              "bježati"),
-    ("cediljka",            "cijediljka"),
+    ("cediljka",            "cjediljka"),
     ("ceđenje",             "cijeđenje"),
     ("cediti",              "cijediti"),
     ("letovanje",           "ljetovanje"),
@@ -74,7 +213,7 @@ EXACT = [
     ("izmeriv",             "izmjeriv"),
     ("merilo",              "mjerilo"),
     ("meriti",              "mjeriti"),
-    ("sedeti",              "sjedjeti"),        # fixed: sjedjeti
+    ("sedeti",              "sjedjeti"),
     ("terati",              "tjerati"),
     ("naterati",            "natjerati"),
     ("videti",              "vidjeti"),
@@ -84,7 +223,7 @@ EXACT = [
     ("pevač",               "pjevač"),
     ("pevati",              "pjevati"),
     ("nerešeno",            "neriješeno"),
-    ("nerešiv",             "nerješiv"),        # fixed: nerje-, not neri-
+    ("nerešiv",             "nerješiv"),
     ("odrešen",             "odriješen"),
     ("rešiti",              "riješiti"),
     ("podeliti",            "podijeliti"),
@@ -100,12 +239,11 @@ EXACT = [
     ("celoživotni",         "cjeloživotni"),
     ("cenjen",              "cijenjen"),
     ("zvezdica",            "zvjezdica"),
-    ("zvezdara",            "zvjezdara"),
     ("zvezdani",            "zvjezdani"),
     ("zvezda",              "zvijezda"),
-    ("svetlo",              "svijetlo"),        # fixed: svije-, not svje-
+    ("svetlo",              "svijetlo"),
     ("osvetljenje",         "osvjetljenje"),
-    ("osvetliti",           "osvjetliti"),
+    ("osvetliti",           "osvijetliti"),
     ("svetlucati",          "svjetlucati"),
     ("sveća",               "svijeća"),
     ("mesečina",            "mjesečina"),
@@ -116,7 +254,7 @@ EXACT = [
     ("osvestiti",           "osvijestiti"),
     ("osvešćenost",         "osvješćenost"),
     ("osvetljenost",        "osvjetljenost"),
-    ("obaveštenje",         "obaviještenje"),
+    ("obaveštenje",         "obavještenje"),
     ("obavestiti",          "obavijestiti"),
     ("svest",               "svijest"),
     ("pesak",               "pijesak"),
@@ -125,7 +263,7 @@ EXACT = [
     ("vetrenjača",          "vjetrenjača"),
     ("vetar",               "vjetar"),
     ("dečak",               "dječak"),
-    ("dečji",               "dječiji"),         # fixed: dječiji
+    ("dečji",               "dječiji"),
     ("dete",                "dijete"),
     ("deca",                "djeca"),
     ("slepi",               "slijepi"),
@@ -146,16 +284,16 @@ EXACT = [
     ("cvetić",              "cvjetić"),
     ("cvećar",              "cvjećar"),
     ("cvet",                "cvijet"),
-    ("snežan",              "snježan"),
+    ("snežan",              "sniježan"),
     ("snežni",              "snježni"),
     ("sneg",                "snijeg"),
     ("zver",                "zvijer"),
-    ("gnev",                "gnjev"),
+    ("gnev",                "gnijev"),
     ("bedan",               "bijedan"),
     ("bedni",               "bijedni"),
     ("beda",                "bijeda"),
     ("zenica",              "zjenica"),
-    ("mešalica",            "miješalica"),
+    ("mešalica",            "mješalica"),
     ("mešavina",            "mješavina"),
     ("mešati",              "miješati"),
     ("mera",                "mjera"),
@@ -171,7 +309,6 @@ EXACT = [
     ("savet",               "savjet"),
     ("zauvek",              "zauvijek"),
     ("uvek",                "uvijek"),
-    ("rečnica",             "rječnica"),
     ("rečnik",              "rječnik"),
     ("rečica",              "rječica"),
     ("reči",                "riječi"),
@@ -201,16 +338,15 @@ EXACT = [
     ("povest",              "povijest"),
     ("delokrug",            "djelokrug"),
     ("delo",                "djelo"),
-    ("ogrev",               "ogrjev"),
+    ("ogrev",               "ogrijev"),
     ("pešačenje",           "pješačenje"),
     ("pešadija",            "pješadija"),
     ("pešački",             "pješački"),
     ("pešak",               "pješak"),
-    ("obešenjak",           "obješenjak"),
-    ("obešati",             "obješati"),
-    ("obesiti",             "objesiti"),
     ("predsednica",         "predsjednica"),
     ("predsednik",          "predsjednik"),
+    ("obesiti",             "objesiti"),
+    ("obešenjak",           "obješenjak"),
     ("grehota",             "grjehota"),
     ("greh",                "grijeh"),
     ("blesnuti",            "bljesnuti"),
@@ -226,136 +362,170 @@ EXACT = [
     ("lek",                 "lijek"),
     ("svet",                "svijet"),
     ("smejati",             "smijati"),
+    # ── Yates article additions ──
+    ("cela",                "cijela"),
+    ("celim",               "cijelim"),
+    ("celog",               "cijelog"),
+    ("celu",                "cijelu"),
+    ("cenila",              "cijenila"),
+    ("delimična",           "djelimična"),
+    ("deteta",              "djeteta"),
+    ("detetom",             "djetetom"),
+    ("devojke",             "djevojke"),
+    ("devojku",             "djevojku"),
+    ("devojčica",           "djevojčica"),
+    ("devojčice",           "djevojčice"),
+    ("devojčicu",           "djevojčicu"),
+    ("hleba",               "hljeba"),
+    ("izbegne",             "izbjegne"),
+    ("izbegnu",             "izbjegnu"),
+    ("izmenama",            "izmjenama"),
+    ("izmene",              "izmjene"),
+    ("izmenjene",           "izmijenjene"),
+    ("izmenjenim",          "izmijenjenim"),
+    ("lepe",                "lijepe"),
+    ("lepote",              "ljepote"),
+    ("lepotica",            "ljepotica"),
+    ("lepotici",            "ljepotici"),
+    ("lepoticom",           "ljepoticom"),
+    ("lekara",              "ljekara"),
+    ("lekare",              "ljekare"),
+    ("lekari",              "ljekari"),
+    ("leka",                "lijeka"),
+    ("leku",                "lijeku"),
+    ("leta",                "ljeta"),
+    ("mere",                "mjere"),
+    ("meri",                "mjeri"),
+    ("meru",                "mjeru"),
+    ("meseca",              "mjeseca"),
+    ("meseci",              "mjeseci"),
+    ("nameštaj",            "namještaj"),
+    ("nedelju",             "nedjelju"),
+    ("neuspeli",            "neuspjeli"),
+    ("neuspešna",           "neuspješna"),
+    ("obavestila",          "obavijestila"),
+    ("obavestio",           "obavijestio"),
+    ("obavešteni",          "obavješteni"),
+    ("obaveštenja",         "obavještenja"),
+    ("osmehom",             "osmijehom"),
+    ("pobednika",           "pobjednika"),
+    ("pobedonosnog",        "pobjedonosnog"),
+    ("podeljenosti",        "podijeljenos ti"),
+    ("posedima",            "posjedima"),
+    ("posednjem",           "posjednjem"),
+    ("posedovala",          "posjedovala"),
+    ("posedovali",          "posjedovali"),
+    ("posedovao",           "posjedovao"),
+    ("poseduje",            "posjeduje"),
+    ("poslednja",           "posljednja"),
+    ("poslednjem",          "posljednjem"),
+    ("poslednjim",          "posljednjim"),
+    ("poslednjoj",          "posljednjoj"),
+    ("poslednju",           "posljednju"),
+    ("posleratne",          "poslijeratne"),
+    ("posleratnih",         "poslijeratnih"),
+    ("posleratnim",         "poslijeratnim"),
+    ("posleratnom",         "poslijeratnom"),
+    ("potpredsednici",      "potpredsjednici"),
+    ("potpredsednika",      "potpredsjednika"),
+    ("potpredsednik",       "potpredsjednik"),
+    ("predsedavala",        "predsjedavala"),
+    ("predsednikom",        "predsjednikom"),
+    ("predsedniku",         "predsjedniku"),
+    ("predsedništva",       "predsjedništva"),
+    ("predsedništvu",       "predsjedništvu"),
+    ("premešten",           "premješten"),
+    ("smenu",               "smjenu"),
+    ("smeni",               "smjeni"),
+    ("svesni",              "svjesni"),
+    ("veka",                "vijeka"),
+    ("veku",                "vijeku"),
+    ("verila",              "vjerila"),
+    ("verna",               "vjerna"),
+    ("vernik",              "vjernik"),
+    ("vetra",               "vjetra"),
+    ("zabeleške",           "zabilješke"),
+    ("zamenika",            "zamjenika"),
+    ("zamenik",             "zamjenik"),
+    ("zamenilo",            "zamijenilo"),
+    ("zamenjen",            "zamijenjen"),
+    ("zamenjivao",          "zamjenjivao"),
+    ("živela",              "živjela"),
+    ("živeli",              "živjeli"),
+    ("želela",              "željela"),
+    ("želeli",              "željeli"),
+    ("želeo",               "željeo"),
+    ("šestomesečnu",        "šestomjesečnu"),
 ]
 
-# ─────────────────────────────────────────────────────────────────────────────
-# STEM replacements  (word boundary on LEFT side only — prefix match)
-# Applied AFTER EXACT. Automatically covers all morphological variants
-# of a root. Pattern: (?<![^\W\d_])EKAVstem(\w*) → IJEKAVstem + suffix
-#
-# Example: ("oseć", "osjeć") matches
-#   osećati, osećaj, osećaji, osećaju, osećajima,
-#   osećanje, osećanja, osećanjima, osećanjem …
-# ─────────────────────────────────────────────────────────────────────────────
 STEMS = [
-    # osećaj / osećanje / osećati family
-    ("oseć",        "osjeć"),
-
-    # pevati / pevač / pevanje (pevac already handled above as kokot)
-    ("pev",         "pjev"),
-
-    # menjač / menjačnica
-    ("menjač",      "mjenjač"),
-
-    # leteti / letenje / letanje — longer prefix to stay safe
-    ("letan",       "lijetan"),
-    ("leteć",       "leteć"),   # letećih etc — no jat change here, skip
+    ("oseć",    "osjeć"),
+    ("seć",     "sjeć"),
+    ("pev",     "pjev"),
+    ("menjač",  "mjenjač"),
+    ("vešt",    "vješt"),
+    ("koren",   "korijen"),
+    ("belež",   "biljež"),
+    ("obelež",  "obiljež"),
+    ("zabelež", "zabiljež"),
+    ("čovek",   "čovjek"),
+    ("letelic", "letjelic"),
+    ("namer",   "namjer"),
+    ("smenj",   "smjenj"),
+    ("delat",   "djelat"),
 ]
 
 
-# This decorator makes the function visible to your Form
-def _exact_pattern(word: str) -> re.Pattern:
-  """Full word-boundary match (no partial)."""
-  return re.compile(
-    r'(?<![^\W\d_])' + re.escape(word) + r'(?![^\W\d_])',
-    re.UNICODE
-  )
-def _stem_pattern(stem: str) -> re.Pattern:
-    """Left-boundary prefix match; captures the rest of the word."""
-    return re.compile(
-      r'(?<![^\W\d_])(' + re.escape(stem) + r')(\w*)',
-      re.UNICODE
-    )
+def _wb(word):
+    return re.compile(r'(?<![^\W\d_])' + re.escape(word) + r'(?![^\W\d_])', re.UNICODE)
+
+def _stem(stem):
+    return re.compile(r'(?<![^\W\d_])(' + re.escape(stem) + r')(\w*)', re.UNICODE | re.IGNORECASE)
+
+_EXACT = [(_wb(e), e, i) for e, i in EXACT]
+_STEMS = [(_stem(e), e, i) for e, i in STEMS]
+
+
+def _apply_exact(text):
+    for pat, e, i in _EXACT:
+        text = pat.sub(i, text)
+        text = _wb(e.capitalize()).sub(i.capitalize(), text)
+        text = _wb(e.upper()).sub(i.upper(), text)
+    return text
+
+def _apply_stems(text):
+    for pat, e, i in _STEMS:
+        def _r(m, ije=i):
+            s, suf = m.group(1), m.group(2)
+            if s.isupper(): return ije.upper() + suf
+            if s[0].isupper(): return ije.capitalize() + suf
+            return ije + suf
+        text = pat.sub(_r, text)
+    return text
+
+def replace_words(text):
+    return _apply_stems(_apply_exact(text))
+
+def process_file(inp, out):
+    if not os.path.isfile(inp):
+        print(f"Error: '{inp}' not found."); sys.exit(1)
+    with open(inp, encoding="utf-8") as f: text = f.read()
+    with open(out, "w", encoding="utf-8") as f: f.write(replace_words(text))
+    print(f"Done: '{inp}' -> '{out}'")
+
+# ─────────────────────────────────────────────────────────────────────────────
+# GLAVNA ANVIL FUNKCIJA (Ovu funkciju pozivate sa klijenta)
+# ─────────────────────────────────────────────────────────────────────────────
 @anvil.server.callable
-def process_data(text):
-  # ─────────────────────────────────────────────────────────────────────────────
-  # EXACT replacements  (word boundaries on BOTH sides)
-  # Applied first. List longer / more-specific entries before shorter ones.
-# ─────────────────────────────────────────────────────────────────────────────
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Compile patterns
-# ─────────────────────────────────────────────────────────────────────────────
-
-
-
-
-
- _EXACT_COMPILED = [
-    (_exact_pattern(ekav), ekav, ijekav)
-    for ekav, ijekav in EXACT
-]
-
-_STEM_COMPILED = [
-    (_stem_pattern(ekav_stem), ekav_stem, ijekav_stem)
-    for ekav_stem, ijekav_stem in STEMS
-] 
-return  replace_words(text)
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Replacement helpers
-# ─────────────────────────────────────────────────────────────────────────────
-
-def _apply_exact(text: str) -> str:
-    for pattern, ekav, ijekav in _EXACT_COMPILED:
-        # lowercase
-        text = pattern.sub(ijekav, text)
-        # Capitalised
-        cap_p = _exact_pattern(ekav.capitalize())
-        text = cap_p.sub(ijekav.capitalize(), text)
-        # ALL CAPS
-        up_p = _exact_pattern(ekav.upper())
-        text = up_p.sub(ijekav.upper(), text)
-    return text
-
-
-def _apply_stems(text: str) -> str:
-    for pattern, ekav_stem, ijekav_stem in _STEM_COMPILED:
-        def _repl(m: re.Match, ije=ijekav_stem) -> str:
-            matched_stem = m.group(1)
-            suffix = m.group(2)
-            # Preserve original capitalisation of the stem part
-            if matched_stem.isupper():
-                return ije.upper() + suffix
-            if matched_stem[0].isupper():
-                return ije.capitalize() + suffix
-            return ije + suffix
-        text = pattern.sub(_repl, text)
-    return text
-
-
-def replace_words(text: str) -> str:
-    text = _apply_exact(text)
-    text = _apply_stems(text)
-    return  replace_words(text)
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# File processing
-# ─────────────────────────────────────────────────────────────────────────────
-
-def process_file(input_path: str, output_path: str) -> None:
-    if not os.path.isfile(input_path):
-        print(f"Error: input file '{input_path}' not found.")
-        sys.exit(1)
-
-    #with open(input_path, "r", encoding="utf-8") as f:
-        #text = f.read()
-
-    modified = replace_words(text)
-
-    #with open(output_path, "w", encoding="utf-8") as f:
-        #f.write(modified)
-
-    print(f"Done! '{input_path}' -> '{output_path}'")
-    return modified
-
-if __name__ == "__main__":
-    if len(sys.argv) != 3:
-        print("Usage: python3.11 replace_e.py <input_file.txt> <output_file.txt>")
-        sys.exit(1)
-
-    process_file(sys.argv[1], sys.argv[2])
-
-  
+def ijekavizuj_tekst(ulazni_tekst):
+    """Prima ekavski tekst sa UI forme, pokreće zamjene i vraća ijekavski tekst."""
+    if not ulazni_tekst:
+        return ""
+    
+    # 1. Prvo primijeni EXACT listu
+    tekst = _apply_exact(ulazni_tekst)
+    
+    # 2. Zatim primijeni STEM listu
+    konacni_tekst = _apply_stems(tekst)
+    
+    return konacni_tekst
