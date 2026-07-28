@@ -1,414 +1,646 @@
+import sys, os, re 
 import anvil.server
 
-# This is a server module. It runs on the Anvil server,
-# rather than in the user's browser.
-#
-# To allow anvil.server.call() to call functions here, we mark
-# them with @anvil.server.callable.
-# Here is an example - you can replace it with your own:
-#
-# @anvil.server.callable
-# def say_hello(name):
-#   print("Hello, " + name + "!")
-#   return 42
-#
-import sys, os, re
-import anvil.server  # Ključno za Anvil
-
 EXACT = [
-  
-  ('razboleo', 'razbolio'),
-  ('sledeći', 'slijedeći'), 
-  ('zamenik', 'zamjenik'),
-  ('svideo', 'svidio'),
-  ('uvideo', 'uvidio'),
-  ('napred', 'naprijed'),
-  ('pevac', 'kokot'),
-  ('video', 'vidio'),
-  ('vreme', 'vrijeme'),
-  ('doneo', 'donijeo'),
-  ('sreda', 'srijeda'),
-  ('hteo', 'htio'),
-  ('uspeo', 'uspio'),
-  ('uvid', 'uvid'),
-  ('dete', 'dijete'),
-  ('plen', 'plijen'),
-  ('žele', 'žele'),
-  ('sme', 'smije'),
-  ('smeo', 'smio'),
-  ('dele', 'dijele'),
-  ('dece', 'djece'),
-  ('leta', 'ljeta'),
-  ('dve', 'dvije'),
-  ('pre', 'prije'),
-  ('bes', 'bijes'),
-  ('deo', 'dio'),
-  ('dev', 'djev'),
-  ('lek', 'lijek'),
-
-
+      ('unapređenjima', 'unaprjeđenjima'),
+      ('unapređenje', 'unaprjeđenje'),
+      ('unapređenja', 'unaprjeđenja'),
+      ('unapređenju', 'unaprjeđenju'),
+      ('pravoverci', 'pravovjerni'),
+      ('vjerbalne', 'verbalne'),
+      ('zahtevao', 'zahtijevao'),
+      ('celinama', 'cjelinama'),
+      ('verbalne', 'verbalne'),
+      ('razboleo', 'razbolio'),
+      ('doprineo', 'doprinio'),
+      ('sledeći', 'sljedeći'),
+      ('zamenik', 'zamjenik'),
+      ('verzija', 'verzija'),
+      ('celina', 'cjelina'),
+      ('celine', 'cjeline'),
+      ('celini', 'cjelini'),
+      ('celinu', 'cjelinu'),
+      ('svideo', 'svidio'),
+      ('uvideo', 'uvidio'),
+      ('napred', 'naprijed'),
+      ('veruju', 'vjeruju'),
+      ('celima', 'cijelima'),
+      ('drugde', 'drugdje'),
+      ('reka', 'rijeka'),
+      ('reke', 'rijeke'),
+      ('reku', 'rijeku'),
+      ('reko', 'rijeko'),
+      ('dele', 'dijele'),
+      ('dete', 'dijete'),
+      ('nigde', 'nigdje'),
+      ('plen', 'plijen'),
+      ('cela', 'cijela'),
+      ('cele', 'cijele'),
+      ('celi', 'cijeli'),
+      ('celo', 'cijelo'),
+      ('celu', 'cijelu'),
+      ('dedovi', 'djedovi'),
+      ('dedama', 'djedovima'),
+      ('vreme', 'vrijeme'),
+      ('svest', 'svijest'),
+      ('doneo', 'donijeo'),
+      ('želeo', 'želio'),
+      ('žudeo', 'žudio'),
+      ('sreda', 'srijeda'),
+      ('uspeo', 'uspio'),
+      ('pevac', 'kokot'),
+      ('uspeo', 'uspio'),
+      ('video', 'vidio'),
+      ('rekao', 'rekao'),
+      ('rekla', 'rekla'),
+      ('vera', 'vjera'),
+      ('vere', 'vjere'),
+      ('veri', 'vjeri'),
+      ('veru', 'vjeru'),
+      ('leta', 'ljeta'),
+      ('dedu', 'djedu'),
+      ('dedi', 'djedi'),
+      ('dece', 'djece'),
+      ('hteo', 'htio'),
+      ('smeo', 'smio'),
+      ('dede', 'djedovi'),
+      ('žele', 'žele'),
+      ('uvid', 'uvid'),
+      ('dev', 'djev'),
+      ('ded', 'djed'),
+      ('sme', 'smije'),
+      ('lek', 'lijek'),
+      ('obe', 'obje'),
+      ('ceo', 'cio'),
+      ('deo', 'dio'),
+      ('dve', 'dvije'),
+      ('pre', 'prije'),
+      ('bes', 'bijes'),
 
 ]
 
 
 STEMS = [
-    ('četvoromeseč', 'četvoromjeseč'),
-    ('devetomeseč', 'devetomjeseč'),
-    ('desetomeseč', 'desetomjeseč'),
-    ('pretpostavk', 'pretpostavk'),
-    ('predstavnik', 'predstavnik'),
-    ('jednomeseč', 'jednomjeseč'),
-    ('petomeseč', 'petomjeseč'),
-    ('šestomeseč', 'šestomjeseč'),
-    ('sedmomeseč', 'sedmmjeseč'),
-    ('osmomeseč', 'osmoomjeseč'),
-    ('presecanj', 'presijecanj'),
-    ('predvide', 'predvidje'),
-    ('potpreds', 'potpredsj'),
-    ('dragocen', 'dragocjen'),
-    ('dvomeseč', 'dvomjeseč'),
-    ('tromeseč', 'tromjeseč'),
-    ('opredeli', 'opredijeli'),
-    ('ponedelj', 'ponedjelj'),
-    ('opredelj', 'opredjelj'),
-    ('pregreja', 'pregrija'),
-    ('povredi', 'povrijedi'),
-    ('obavest', 'obavijest'),
-    ('izbegav', 'izbjegav'),
-    ('delegat', 'delegat'),
-    ('osvedoč', 'osvjedoč'),
-    ('poverlj', 'povjerlj'),
-    ('obavešt', 'obavješt'),
-    ('zabelež', 'zabiljež'),
-    ('podsmeh', 'podsmjeh'),
-    ('prebole', 'prebolje'),
-    ('premešt', 'premješt'),
-    ('premest', 'premjest'),
-    ('odeljak', 'odjeljak'),
-    ('doprine', 'doprinije'),
-    ('neizbež', 'neizbjež'),
-    ('neizmer', 'neizmjer'),
-    ('letelic', 'letjelic'),
-    ('nadžive', 'nadživje'),
-    ('prosleđ', 'prosljeđ'),
-    ('osvetli', 'osvijetli'),
-    ('osvetlj', 'osvjetlj'),
-    ('pobeg', 'pobjeg'),
-    ('pobegl', 'pobjegl'),
-    ('prevar', 'prevar'),
-    ('povest', 'povijest'),
-    ('prosle', 'proslije'),
-    ('gnezdo', 'gnijezdo'),
-    ('unapre', 'unaprije'),
-    ('razbole', 'razbolje'),
-    ('zaplena', 'zapljena'),
-    ('zaplenu', 'zapljenu'),
-    ('zapleni', 'zaplijeni'),
-    ('zaplene', 'zapljene'),
-    ('proceni', 'procijeni'),
-    ('procena', 'procjena'),
-    ('procene', 'procjene'),
-    ('procenu', 'procjenu'),
-    ('bekstv', 'bjekstv'),
-    ('napredo', 'napredo'),
-    ('napredn', 'napredn'),
-    ('proter', 'protjer'),
-    ('nasled', 'naslijed'),
-    ('pogreš', 'pogriješ'),
-    ('dodeli', 'dodijeli'),
-    ('promen', 'promjen'),
-    ('izvesn', 'izvjesn'),
-    ('izvest', 'izvijest'),
-    ('pobedi', 'pobijedi'),
-    ('porekl', 'porijekl'),
-    ('posled', 'posljed'),
-    ('razume', 'razumije'),
-    ('razume', 'razumje'),
-    ('predst', 'predst'),
-    ('odeven', 'odjeven'),
-    ('dospel', 'dospjel'),
-    ('pešačk', 'pješačk'),
-    ('posred', 'posred'),
-    ('decemb', 'decemb'),
-    ('namešt', 'namješt'),
-    ('zaplen', 'zaplijen'),
-    ('detinj', 'djetinj'),
-    ('svugde', 'svugdje'),
-    ('savest', 'savjest'),
-    ('proleć', 'proljeć'),
-    ('nalete', 'naletje'),
-    ('svetsk', 'svjetsk'),
-    ('povređ', 'povrijeđ'),
-    ('neuspe', 'neuspje'),
-    ('vaspit', 'vaspit'),
-    ('podela', 'podjela'),
-    ('smatra', 'smatra'),
-    ('dožive', 'doživje'),
-    ('preseć', 'presjeć'),
-    ('preduz', 'preduz'),
-    ('stalež', 'stalež'),
-    ('obelež', 'obiljež'),
-    ('izgore', 'izgorje'),
-    ('nedelj', 'nedjelj'),
-    ('razmer', 'razmjer'),
-    ('primer', 'primjer'),
-    ('menjač', 'mjenjač'),
-    ('svetlo', 'svjetlo'),
-    ('posled', 'posljed'),
-    ('zaposl', 'zaposl'),
-    ('zapose', 'zaposje'),
-    ('vremen', 'vremen'),
-    ('neretk', 'nerijetk'),
-    ('usled', 'usljed'),
-    ('devet', 'devet'),
-    ('želel', 'željel'),
-    ('pleni', 'plijeni'),
-    ('posle', 'poslije'),
-    ('greši', 'griješi'),
-    ('delima', 'djelima'),
-    ('prene', 'prenije'),
-    ('letak', 'letak'),
-    ('oceni', 'ocijeni'),
-    ('detet', 'djetet'),
-    ('strelj','strijelj'),
-    ('kolev', 'kolijev'),
-    ('podne', 'podne'),
-    ('koren', 'korijen'),
-    ('svide', 'svidje'),
-    ('čovek', 'čovjek'),
-    ('cveta', 'cvjeta'),
-    ('ucena', 'ucjena'),
-    ('ucene', 'ucjene'),
-    ('ucenu', 'ucjenu'),
-    ('uceni', 'ucijeni'),
-    ('decem', 'decem'),
-    ('zaver', 'zavjer'),
-    ('savet', 'savjet'),
-    ('podel', 'podijel'),
-    ('lekar', 'ljekar'),
-    ('zamen', 'zamijen'),
-    ('mesec', 'mjesec'),
-    ('levic', 'ljevic'),
-    ('levič', 'ljevič'),
-    ('posed', 'posjed'),
-    ('poset', 'posjet'),
-    ('poseć', 'posjeć'),
-    ('negde', 'negdje'),
-    ('najpr', 'najprij'),
-    ('smešt', 'smješt'),
-    ('smest', 'smjest'),
-    ('živet', 'živjet'),
-    ('živel', 'živjel'),
-    ('živeo', 'živio'),
-    ('nedel', 'nedjel'),
-    ('obe', 'obje'),
-    ('odole', 'odolje'),
-    ('uvide', 'uvidje'),
-    ('pover', 'povjer'),
-    ('dodel', 'dodjel'),
-    ('svedo', 'svjedo'),
-    ('never', 'nevjer'),
-    ('venac', 'vijenac'),
-    ('umest', 'umjest'),
-    ('oseća', 'osjeća'),
-    ('izmen', 'izmijen'),
-    ('zamer', 'zamjer'),
-    ('detalj', 'detalj'),
-    ('belež', 'biljež'),
-    ('osvet', 'osvjet'),
-    ('obole', 'obolje'),
-    ('teles', 'tjeles'),
-    ('kolen', 'koljen'),
-    ('uspeh', 'uspjeh'),
-    ('predse', 'predsje'),
-    ('izmer', 'izmjer'),
-    ('izveš', 'izvješ'),
-    ('izbeg', 'izbjeg'),
-    ('lepot', 'ljepot'),
-    ('vetar', 'vjetar'),
-    ('sever', 'sjever'),
-    ('nemač', 'njemač'),
-    ('napad', 'napad'),
-    ('izved', 'izved'),
-    ('nared', 'nared'),
-    ('smenj', 'smjenj'),
-    ('zvezd', 'zvjezd'),
-    ('delat', 'djelat'),
-    ('devoj', 'djevoj'),
-    ('beleg', 'biljeg'),
-    ('zased', 'zasijed'),
-    ('namer', 'namjer'),
-    ('nemac', 'njemac'),
-    ('delim', 'dijelim'),
-    ('želet', 'željet'),
-    ('ocenj', 'ocijenj'),
-    ('greja', 'grija'),
-    ('smeja', 'smija'),
-    ('sreds', 'sreds'),
-    ('cvet', 'cvijet'),
-    ('slep', 'slijep'),
-    ('deca', 'djeca'),
-    ('deci', 'djeci'),
-    ('decu', 'djecu'),
-    ('deco', 'djeco'),
-    ('sede', 'sjedje'),
-    ('greh', 'grijeh'),
-    ('mlek', 'mlijek'),
-    ('deli', 'dijeli'),
-    ('besv', 'besvj'),
-    ('bled', 'blijed'),
-    ('bled', 'blijed'),
-    ('ubed', 'ubijed'),
-    ('preć', 'prijeć'),
-    ('pret', 'prijet'),
-    ('smeh', 'smijeh'),
-    ('sneg', 'snijeg'),
-    ('svet', 'svijet'),
-    ('sten', 'stijen'),
-    ('odel', 'odijel'),
-    ('retk', 'rijetk'),
-    ('odne', 'odnije'),
-    ('reši', 'riješi'),
-    ('veća', 'veća'),
-    ('veće', 'veće'),
-    ('veći', 'veći'),
-    ('zver', 'zvijer'),
-    ('donel', 'donijel'),
-    ('vred', 'vrijed'),
-    ('iznet', 'iznijet'),
-    ('delo', 'djelo'),
-    ('dela', 'djela'),
-    ('delo', 'djelo'),
-    ('delu', 'djelu'),
-    ('oseć', 'osjeć'),
-    ('odeć', 'odjeć'),
-    ('nemc', 'njemc'),
-    ('vešt', 'vješt'),
-    ('peva', 'pjeva'),
-    ('venc', 'vijenc'),
-    ('cent', 'cent'),
-    ('ubeđ', 'ubjeđ'),
-    ('nežn', 'nježn'),
-    ('mesn', 'mjesn'),
-    ('oset', 'osjet'),
-    ('hleb', 'hljeb'),
-    ('gnev', 'gnjev'),
-    ('tera', 'tjera'),
-    ('vide', 'vidje'),
-    ('vest', 'vijest'),
-    ('besn', 'bijesn'),
-    ('dvem', 'dvjem'),
-    ('uver', 'uvjer'),
-    ('mese', 'mjese'),
-    ('seti', 'sjeti'),
-    ('ocen', 'ocjen'),
-    ('smer', 'smjer'),
-    ('pesm', 'pjesm'),
-    ('ovde', 'ovdje'),
-    ('mest', 'mjest'),
-    ('lenj', 'lijen'),
-    ('peša', 'pješa'),
-    ('onde', 'ondje'),
-    ('sled', 'sljed'),
-    ('beža', 'bježa'),
-    ('breg', 'brijeg'),
-    ('lete', 'letje'),
-    ('leto', 'ljeto'),
-    ('letu', 'ljetu'),
-    ('leti', 'ljeti'),
-    ('uspe', 'uspje'),
-    ('done', 'donije'),
-    ('letnj', 'ljetnj'),
-    ('odel', 'odjel'),
-    ('smel', 'smjel'),
-    ('leč', 'liječ'),
-    ('rek', 'rijek'),
-    ('leko', 'ljeko'),
-    ('leku', 'lijeku'),
-    ('leka', 'lijeka'),
-    ('lev', 'lijev'),
-    ('vol', 'volj'),
-    ('reč', 'riječ'),
-    ('cev', 'cijev'),
-    ('cep', 'cijep'),
-    ('pes', 'pijes'),
-    ('lep', 'lijep'),
-    ('une', 'unije'),
-    ('bed', 'bijed'),
-    ('cel', 'cijel'),
-    ('ded', 'djed'),
-    ('reš', 'rješ'),
-    ('ver', 'vjer'),
-    ('mle', 'mlje'),
-    ('ređ', 'rjeđ'),
-    ('več', 'vječ'),
-    ('leš', 'lješ'),
-    ('meš', 'mješ'),
-    ('mer', 'mjer'),
-    ('les', 'ljes'),
-    ('pev', 'pjev'),
-    ('gde', 'gdje'),
-    ('sen', 'sjen'),
-    ('seć', 'sjeć'),
-    ('hte', 'htje'),
-    ('ceni', 'cijeni'),
-    ('cena', 'cijena'),
-    ('cenu', 'cijenu'),
-    ('cenit', 'cijeniti'),
-    ('bel', 'bijel'),
-
- 
+      ('četvoromeseč', 'četvoromjeseč'),
+      ('desetomeseč', 'desetomjeseč'),
+      ('devetomeseč', 'devetomjeseč'),
+      ('predstavnik', 'predstavnik'),
+      ('jednomeseč', 'jednomjeseč'),
+      ('pretpostav', 'pretpostav'),
+      ('sedmomeseč', 'sedmmjeseč'),
+      ('šestomeseč', 'šestomjeseč'),
+      ('osmomeseč', 'osmoomjeseč'),
+      ('petomeseč', 'petomjeseč'),
+      ('podrazume', 'podrazumije'),
+      ('presecanj', 'presijecanj'),
+      ('presecanj', 'presijecanj'),
+      ('bezuspeš', 'bezuspješ'),
+      ('celobroj', 'cjelobroj'),
+      ('doprinel', 'doprinijel'),
+      ('doprinos', 'doprinios'),
+      ('dragocen', 'dragocjen'),
+      ('dvomeseč', 'dvomjeseč'),
+      ('opredeli', 'opredijeli'),
+      ('opredelj', 'opredjelj'),
+      ('ponedelj', 'ponedjelj'),
+      ('potpreds', 'potpredsj'),
+      ('predvide', 'predvidje'),
+      ('pregreja', 'pregrija'),
+      ('ravnomer', 'ravnomjern'),
+      ('tromeseč', 'tromjeseč'),
+      ('zakasnel', 'zakašnjel'),
+      ('zaveštan', 'zavještan'),
+      ('potpreds', 'potpredsj'),
+      ('delimič', 'djelimič'),
+      ('izbegav', 'izbjegav'),
+      ('letelic', 'letjelic'),
+      ('nadžive', 'nadživje'),
+      ('neizbež', 'neizbjež'),
+      ('neizmer', 'neizmjer'),
+      ('obavest', 'obavijest'),
+      ('obavešt', 'obavješt'),
+      ('ocenjiv', 'ocjenjiv'),
+      ('odeljak', 'odjeljak'),
+      ('osvedoč', 'osvjedoč'),
+      ('osvetli', 'osvijetli'),
+      ('osvetlj', 'osvjetlj'),
+      ('pogreši', 'pogriješi'),
+      ('poverlj', 'povjerlj'),
+      ('povredi', 'povrijedi'),
+      ('prebole', 'prebolje'),
+      ('premest', 'premjest'),
+      ('premešt', 'premješt'),
+      ('procenj', 'procjenj'),
+      ('primenj', 'primijenj'),
+      ('prosleđ', 'prosljeđ'),
+      ('razbole', 'razbolje'),
+      ('razmenj', 'razmjenj'),
+      ('telefon', 'telefon'),
+      ('umetnik', 'umjetnik'),
+      ('unapređ', 'unapređ'),
+      ('zahteva', 'zahtijeva'),
+      ('zaplene', 'zapljene'),
+      ('zapleni', 'zaplijeni'),
+      ('zaplenu', 'zapljenu'),
+      ('zaplena', 'zapljena'),
+      ('delegat', 'delegat'),
+      ('napredn', 'napredn'),
+      ('napredo', 'napredo'),
+      ('podsmeh', 'podsmjeh'),
+      ('predlog', 'prijedlog'),
+      ('primeni', 'primijeni'),
+      ('procena', 'procjena'),
+      ('procene', 'procjene'),
+      ('proceni', 'procijeni'),
+      ('procenu', 'procjenu'),
+      ('zabelež', 'zabiljež'),
+      ('obezbed', 'obezbijed'),
+      ('obezbeđ', 'obezbjeđ'),
+      ('prethod', 'prethod'),
+      ('primedb', 'primjedb'),
+      ('verovatn', 'vjerovatn'),
+      ('nalepn', 'naljepn'),
+      ('proter', 'protjer'),
+      ('zaposl', 'zapošlj'),
+      ('bekstv', 'bjekstv'),
+      ('decemb', 'decemb'),
+      ('dedukt', 'dedukt'),
+      ('delima', 'djelima'),
+      ('delimi', 'djelimi'),
+      ('detalj', 'detalj'),
+      ('detinj', 'djetinj'),
+      ('dodeli', 'dodijeli'),
+      ('dodelj', 'dodijelj'),
+      ('dospel', 'dospjel'),
+      ('dožive', 'doživje'),
+      ('gnezdo', 'gnijezdo'),
+      ('izgore', 'izgorje'),
+      ('izvesn', 'izvjesn'),
+      ('izvest', 'izvijest'),
+      ('menjač', 'mjenjač'),
+      ('namešt', 'namješt'),
+      ('nasled', 'naslijed'),
+      ('nemošć', 'nijemošć'),
+      ('neretk', 'nerijetk'),
+      ('neuspe', 'neuspje'),
+      ('obelež', 'obiljež'),
+      ('odeven', 'odjeven'),
+      ('pešačk', 'pješačk'),
+      ('pobedi', 'pobijedi'),
+      ('pobegl', 'pobjegl'),
+      ('podela', 'podjela'),
+      ('porekl', 'porijekl'),
+      ('posled', 'posljed'),
+      ('posred', 'posred'),
+      ('povređ', 'povrijeđ'),
+      ('povest', 'povijest'),
+      ('predse', 'predsje'),
+      ('predst', 'predst'),
+      ('preduz', 'preduz'),
+      ('preseć', 'presjeć'),
+      ('prevar', 'prevar'),
+      ('preživ', 'preživ'),
+      ('preživ', 'preživj'),
+      ('primer', 'primjer'),
+      ('proleć', 'proljeć'),
+      ('promen', 'promjen'),
+      ('proseč', 'prosječ'),
+      ('prosek', 'prosijek'),
+      ('prosle', 'proslije'),
+      ('razmer', 'razmjer'),
+      ('razreš', 'razriješ'),
+      ('razume', 'razumje'),
+      ('razume', 'razumije'),
+      ('reklam', 'reklam'),
+      ('savest', 'savjest'),
+      ('smatra', 'smatra'),
+      ('stalež', 'stalež'),
+      ('svetlo', 'svjetlo'),
+      ('svetsk', 'svjetsk'),
+      ('svugde', 'svugdje'),
+      ('unapre', 'unaprije'),
+      ('vaspit', 'vaspit'),
+      ('vremen', 'vremen'),
+      ('zahtev', 'zahtjev'),
+      ('zahtev', 'zahtijev'),
+      ('zamenj', 'zamjenj'),
+      ('zaplen', 'zaplijen'),
+      ('zapose', 'zaposje'),
+      ('nasmeš', 'nasmiješ'),
+      ('nedelj', 'nedjelj'),
+      ('podseć', 'podsjeć'),
+      ('predst', 'predst'),
+      ('primen', 'primjen'),
+      ('prover', 'provjer'),
+      ('sledeć', 'slijedeć'),
+      ('strelj', 'strijelj'),
+      ('zamenj', 'zamjenj'),
+      ('belež', 'biljež'),
+      ('celin', 'cjelin'),
+      ('cenit', 'cijeniti'),
+      ('cveta', 'cvjeta'),
+      ('delat', 'djelat'),
+      ('delim', 'dijelim'),
+      ('detet', 'djetet'),
+      ('devet', 'devet'),
+      ('devoj', 'djevoj'),
+      ('izbeg', 'izbjeg'),
+      ('izmen', 'izmijen'),
+      ('izmer', 'izmjer'),
+      ('izveš', 'izvješ'),
+      ('kolev', 'kolijev'),
+      ('koren', 'korijen'),
+      ('lekar', 'ljekar'),
+      ('lepot', 'ljepot'),
+      ('letnj', 'ljetnj'),
+      ('levic', 'ljevic'),
+      ('levič', 'ljevič'),
+      ('mesec', 'mjesec'),
+      ('namer', 'namjer'),
+      ('napad', 'napad'),
+      ('nared', 'nared'),
+      ('negde', 'negdje'),
+      ('nemac', 'njemac'),
+      ('nemač', 'njemač'),
+      ('never', 'nevjer'),
+      ('obole', 'obolje'),
+      ('oceni', 'ocijeni'),
+      ('odole', 'odolje'),
+      ('opsed', 'opsjed'),
+      ('osvet', 'osvjet'),
+      ('pobeg', 'pobjeg'),
+      ('podel', 'podijel'),
+      ('podne', 'podne'),
+      ('pomer', 'pomjer'),
+      ('poseć', 'posjeć'),
+      ('posed', 'posjed'),
+      ('poset', 'posjet'),
+      ('posle', 'poslije'),
+      ('pover', 'povjer'),
+      ('prene', 'prenije'),
+      ('preti', 'prijeti'),
+      ('rasej', 'rasijan'),
+      ('savet', 'savjet'),
+      ('smeja', 'smija'),
+      ('smest', 'smjest'),
+      ('smešt', 'smješt'),
+      ('smenj', 'smjenj'),
+      ('svedo', 'svjedo'),
+      ('svide', 'svidje'),
+      ('ubeđe', 'ubijeđe'),
+      ('ucena', 'ucjena'),
+      ('ucene', 'ucjene'),
+      ('uceni', 'ucijeni'),
+      ('ucenu', 'ucjenu'),
+      ('umest', 'umjest'),
+      ('usled', 'usljed'),
+      ('uspeh', 'uspjeh'),
+      ('uvežb', 'uvježb'),
+      ('uvide', 'uvidje'),
+      ('venac', 'vijenac'),
+      ('vetar', 'vjetar'),
+      ('zamen', 'zamijen'),
+      ('zamer', 'zamjer'),
+      ('zased', 'zasijed'),
+      ('zaver', 'zavjer'),
+      ('zvezd', 'zvijezd'),
+      ('zvezd', 'zvjezd'),
+      ('želel', 'željel'),
+      ('živel', 'živjel'),
+      ('živeo', 'živio'),
+      ('živet', 'živjet'),
+      ('žudel', 'žudel'),
+      ('beleg', 'biljeg'),
+      ('čovek', 'čovjek'),
+      ('čoveč', 'čovječ'),
+      ('decem', 'decem'),
+      ('deleć', 'dijeleć'),
+      ('delić', 'djelić'),
+      ('delić', 'delić'),
+      ('dodel', 'dodjel'),
+      ('donel', 'donijel'),
+      ('greja', 'grija'),
+      ('greši', 'griješi'),
+      ('izbeg', 'izbjeg'),
+      ('izned', 'izned'),
+      ('iznet', 'iznijet'),
+      ('lepot', 'ljepot'),
+      ('letak', 'letak'),
+      ('napad', 'napad'),
+      ('nared', 'nared'),
+      ('nedel', 'nedjel'),
+      ('nemoć', 'nemoć'),
+      ('ocenj', 'ocjenj'),
+      ('oseća', 'osjeća'),
+      ('pomer', 'pomjer'),
+      ('sever', 'sjever'),
+      ('zamer', 'zamjer'),
+      ('zvezd', 'zvijezd'),
+      ('želet', 'željet'),
+      ('oset', 'osjet'),
+      ('ovde', 'ovdje'),
+      ('peša', 'pješa'),
+      ('besn', 'bijesn'),
+      ('besv', 'besvj'),
+      ('beža', 'bježa'),
+      ('bled', 'blijed'),
+      ('breg', 'brijeg'),
+      ('cena', 'cijena'),
+      ('ceni', 'cijeni'),
+      ('cenu', 'cijenu'),
+      ('cent', 'cent'),
+      ('cvet', 'cvijet'),
+      ('deca', 'djeca'),
+      ('deča', 'dječa'),
+      ('deci', 'djeci'),
+      ('deco', 'djeco'),
+      ('decu', 'djecu'),
+      ('deli', 'dijeli'),
+      ('delo', 'djelo'),
+      ('dela', 'djela'),
+      ('delu', 'djelu'),
+      ('done', 'donije'),
+      ('dvem', 'dvjem'),
+      ('gnev', 'gnjev'),
+      ('greh', 'grijeh'),
+      ('leka', 'lijeka'),
+      ('leko', 'ljeko'),
+      ('leku', 'lijeku'),
+      ('lenj', 'lijen'),
+      ('lete', 'letje'),
+      ('leti', 'ljeti'),
+      ('leto', 'ljeto'),
+      ('letu', 'ljetu'),
+      ('mesn', 'mjesn'),
+      ('mese', 'mjese'),
+      ('mest', 'mjest'),
+      ('mlek', 'mlijek'),
+      ('nemc', 'njemc'),
+      ('nežn', 'nježn'),
+      ('ocen', 'ocjen'),
+      ('odeć', 'odjeć'),
+      ('odel', 'odijel'),
+      ('odel', 'odjel'),
+      ('odne', 'odnije'),
+      ('onde', 'ondje'),
+      ('oseć', 'osjeć'),
+      ('pesm', 'pjesm'),
+      ('peva', 'pjeva'),
+      ('peša', 'pješa'),
+      ('rečn', 'riječn'),
+      ('reši', 'riješi'),
+      ('retk', 'rijetk'),
+      ('sled', 'sljed'),
+      ('smeh', 'smijeh'),
+      ('smer', 'smjer'),
+      ('smel', 'smjel'),
+      ('sneg', 'snijeg'),
+      ('sten', 'stijen'),
+      ('svet', 'svijet'),
+      ('seti', 'sjeti'),
+      ('tesn', 'tijesn'),
+      ('tera', 'tjera'),
+      ('ubeđ', 'ubjeđ'),
+      ('ubed', 'ubijed'),
+      ('uspe', 'uspje'),
+      ('uteh', 'utjeh'),
+      ('uver', 'uvjer'),
+      ('veća', 'veća'),
+      ('veće', 'veće'),
+      ('veći', 'veći'),
+      ('vešt', 'vješt'),
+      ('venc', 'vijenc'),
+      ('venč', 'vjenč'),
+      ('vest', 'vijest'),
+      ('vide', 'vidje'),
+      ('vred', 'vrijed'),
+      ('vređ', 'vrijeđ'),
+      ('žele', 'žele'),
+      ('zver', 'zvijer'),
+      ('hleb', 'hljeb'),
+      ('leč', 'liječ'),
+      ('les', 'ljes'),
+      ('leš', 'lješ'),
+      ('meš', 'mješ'),
+      ('mer', 'mjer'),
+      ('seć', 'sjeć'),
+      ('bed', 'bijed'),
+      ('bel', 'bijel'),
+      ('cep', 'cijep'),
+      ('cev', 'cijev'),
+      ('gde', 'gdje'),
+      ('hte', 'htje'),
+      ('lep', 'lijep'),
+      ('lev', 'lijev'),
+      ('mle', 'mlje'),
+      ('pev', 'pjev'),
+      ('pes', 'pijes'),
+      ('reč', 'riječ'),
+      ('ređ', 'rjeđ'),
+      ('reš', 'rješ'),
+      ('sen', 'sjen'),
+      ('seć', 'sjeć'),
+      ('tel', 'tijel'),
+      ('une', 'unije'),
+      ('več', 'vječ'),
+      ('vek', 'vijek'),
+      ('vol', 'volj')
 ]
-def _wb(word):
-    return re.compile(r'(?<![^\W\d_])' + re.escape(word) + r'(?![^\W\d_])', re.UNICODE)
 
-def _stem(stem):
-    return re.compile(r'(?<![^\W\d_])(' + re.escape(stem) + r')(\w*)', re.UNICODE | re.IGNORECASE)
+
+
+KONTEKST_MAPE = [
+    {
+        'ekavski': ['sedela', 'sedeli', 'sedeo', 'sedio', 'sede', 'sedu', 'sedi', 'sedog', 'sedoh'],
+        'kljucevi1': ['kos', 'brad', 'zalisc', 'star', 'godin', 'glav', 'vlas', 'obrv', 'mrsi'],
+        'kljucevi2': ['stolic', 'fotelj', 'klup', 'mest', 'sto', 'sof', 'park', 'sati', 'mirn', 'prozor', 'pod', 'kuć', 'ispred'],
+        'mape_grupa1': {
+            'sedela': 'sijedila', 'sedeli': 'sijedili', 'sedeo': 'sijedio', 'sedio': 'sijedio',
+            'sede': 'sijede', 'sedu': 'sijedu', 'sedi': 'sijedi', 'sedog': 'sijedog', 'sedoh': 'sijedoh'
+        },
+        'mape_grupa2': {
+            'sedela': 'sjedjela', 'sedeli': 'sjedjeli', 'sedeo': 'sjedio', 'sedio': 'sjedio',
+            'sede': 'sjede', 'sedu': 'sjedu', 'sedi': 'sjedi', 'sedog': 'sjedog', 'sedoh': 'sjedoh'
+        }
+    },
+   
+    {
+        'ekavski': ['svet'],
+        'kljucevi1': ['zemlj', 'planet', 'ljud', 'narod', 'putov', 'obid', 'držav'],
+        'kljucevi2': ['bog', 'crkv', 'otac', 'duh', 'krst', 'ikona', 'svešten', 'vjera'],
+        'mape_grupa1': {'svet': 'svijet'},
+        'mape_grupa2': {'svet': 'svet'}
+    },
+    {
+        'ekavski': ['leci'],
+        'kljucevi1': ['papir', 'prospekt', 'reklam', 'dijel', 'štamp', 'sto', 'kutij'],
+        'kljucevi2': ['boles', 'doktor', 'bolnic', 'zdrav', 'lijek', 'pacijent', 'ran'],
+        'mape_grupa1': {'leci': 'letci'},
+        'mape_grupa2': {'leci': 'liječi'}
+    },
+    {
+        'ekavski': ['bela', 'bele'],
+        'kljucevi1': ['boj', 'papir', 'košulj', 'snijeg', 'haljin', 'zid', 'platn'],
+        'kljucevi2': ['pladn', 'dan', 'zabel', 'platn', 'košulj', 'zid', 'boj'],
+        'mape_grupa1': {'bela': 'bijela', 'bele': 'bijele'},
+        'mape_grupa2': {'bela': 'bjelila', 'bele': 'bjelile'}
+    },
+    {
+        'ekavski': ['selo'],
+        'kljucevi1': ['mjest', 'mesto', 'livad', 'životinj', 'krav', 'ovc', 'babi', 'ded', 'djed', 'imanj', 'prirod', 'oranic'],
+        'kljucevi2': ['stolic', 'fotelj', 'klup', 'mest', 'sto', 'sof', 'park', 'sati', 'mirn', 'prozor', 'pod', 'kuć', 'ispred', 'ptica', 'dete', 'dijete'],
+        'mape_grupa1': {'selo': 'selo'}, # selo (mjesto)
+        'mape_grupa2': {'selo': 'sjelo'} # sjelo (glagol)
+    },
+    {
+        'ekavski': ['dela'],
+        'kljucevi1': ['značajn', 'sabran', 'knjig', 'pisac', 'umetnik', 'umjetnik', 'stvor', 'autor', 'opus', 'bibliotek'],
+        'kljucevi2': ['kuć', 'poslovn', 'prostor', 'imovin', 'zemljišt', 'plac', 'soba', 'sprat', 'zgrad', 'dvorišt'],
+        'mape_grupa1': {'dela': 'djela'}, # djela (umjetnička)
+        'mape_grupa2': {'dela': 'dijela'} # dijela (dijelovi)
+    },
+ {
+        'ekavski': ['veće'],
+        'kljucevi1': ['glomazn', 'gabarit', 'velik', 'poras', 'poveć', 'broj', 'dimenzij', 'tež', 'vis', 'šir', 'manj'],
+        'kljucevi2': ['zasijed', 'zasjed', 'odbor', 'sudsk', 'ministarsk', 'gradsk', 'odluk', 'član', 'glasan', 'sastan', 'skupštin'],
+        'mape_grupa1': {'veće': 'veće'},
+        'mape_grupa2': {'veće': 'vijeće'}
+    },
+{
+    'ekavski': ['primene'],
+    'kljucevi1': ['znanj', 'teorij', 'praks', 'metod', 'zakon', 'pravil', 'sistem', 'funkcij', 'rezultat'],
+    'kljucevi2': ['alat', 'oruđ', 'kupil', 'sprem', 'priprem', 'planir', 'kazn', 'mjer', 'mjere', 'sankcij'],
+    'mape_grupa1': {'primene': 'primjene'},
+    'mape_grupa2': {'primene': 'primijene'}
+},
+{
+    'ekavski': ['reci'],
+    'kljucevi1': ['nekom', 'tati', 'bratu', 'prijatelj', 'kaž', 'rekn', 'istinu', 'poruk', 'pism', 'glasn', 'tiho'],
+    'kljucevi2': ['približ', 'obali', 'vod', 'tok', 'most', 'pliv', 'brod', 'čam', 'rib', 'jezer', 'mor', 'morsk'],
+    'mape_grupa1': {'reci': 'reci'},
+    'mape_grupa2': {'reci': 'rijeci'}
+},
+{
+    'ekavski': ['preko', 'preka'],
+    'kljucevi1': ['ljut', 'pogled', 'mrštit', 'osion', 'gled', 'izraz', 'oko', 'reč', 'riječ', 'narav', 'gnev', 'gnijev', 'prekor', 'hladn'],
+    'kljucevi2': ['preć', 'stić', 'doć', 'zakorač', 'most', 'prug', 'šin', 'put', 'ulic', 'rijek', 'potok', 'strana','obala','granic'],
+    'mape_grupa1': {'preko': 'prijeko', 'preka': 'prijeka'},
+    'mape_grupa2': {'preko': 'preko'}
+}
+
+
+]
+
+
+IMENA_IZUZECI_KORIJENI = ['vera','veri','veru','sedić', 'seden', 'sedlar', 'razbolović', 'slepčević']
+
+def _wb(rijec): return re.compile(r'(?<![^\W\d_])' + re.escape(rijec) + r'(?![^\W\d_])', re.UNICODE | re.IGNORECASE)
+def _stem(korijen): return re.compile(r'(?<![^\W\d_])(' + re.escape(korijen) + r')(\w*)', re.UNICODE | re.IGNORECASE)
 
 _EXACT = [(_wb(e), e, i) for e, i in EXACT]
 _STEMS = [(_stem(e), e, i) for e, i in STEMS]
 
+def da_li_je_pocetak_recenice(tekst, pozicija):
+    p = tekst[:pozicija].strip()
+    return True if not p or p[-1] in ['.', '!', '?', '\n', '"', '„', '(', '['] else False
 
-def _apply_exact(text):
+def _sacuvaj_velika_slova(izvorna, zamjena, sufiks=""):
+    if izvorna.isupper(): return zamjena.upper() + sufiks.upper()
+    if izvorna.istitle(): return zamjena.capitalize() + sufiks
+    return zamjena + sufiks
+
+def _primijeni_exact(tekst):
     for pat, e, i in _EXACT:
-        text = pat.sub(i, text)
-        text = _wb(e.capitalize()).sub(i.capitalize(), text)
-        text = _wb(e.upper()).sub(i.upper(), text)
-    return text
+        def _r(m):
+            s = m.group(0)
+            if da_li_je_pocetak_recenice(tekst, m.start()):
+                if any(s.lower().startswith(korijen) for korijen in IMENA_IZUZECI_KORIJENI):
+                    return s
+            return s if (s[0].isupper() and not da_li_je_pocetak_recenice(tekst, m.start())) else _sacuvaj_velika_slova(s, i)
+        tekst = pat.sub(_r, tekst)
+    return tekst
 
-def _apply_stems(text):
+def _primijeni_stems(tekst):
+    TACNA_IMENA = ['vera', 'veri', 'veru']
+    KORIJENI_PREZIMENA = ['sedić', 'seden', 'sedlar', 'razbolović', 'slepčević']
+    TEHNICKI_IZUZECI = ['telefon', 'televiz', 'telegram', 'telefons', 'televizij', 'teleskop']
+    
     for pat, e, i in _STEMS:
-        def _r(m, ije=i):
+        def _r(m):
             s, suf = m.group(1), m.group(2)
-            if s.isupper(): return ije.upper() + suf
-            if s[0].isupper(): return ije.capitalize() + suf
-            return ije + suf
-        text = pat.sub(_r, text)
-    return text
+            puna_rec = (s + suf).lower()
+            
+            if da_li_je_pocetak_recenice(tekst, m.start()):
+                if puna_rec in TACNA_IMENA or any(puna_rec.startswith(k) for k in KORIJENI_PREZIMENA):
+                    return m.group(0)
+                    
+            if any(puna_rec.startswith(izuzetak) for izuzetak in TEHNICKI_IZUZECI):
+                return m.group(0)
+                
+            if s[0].isupper() and not da_li_je_pocetak_recenice(tekst, m.start()):
+                return m.group(0)
+                
+            return _sacuvaj_velika_slova(s, i, suf)
+            
+        tekst = pat.sub(_r, tekst)
+    return tekst
 
-def replace_words(text):
-    return _apply_stems(_apply_exact(text))
+def _primijeni_kontekst_prozor(tekst):
+    recenice = re.split(r'([.!?\n]+)', tekst)
+    novi_delovi = []
+    
+    for recenica in recenice:
+        if not recenica.strip() or re.match(r'^[...!?\n]+$', recenica):
+            novi_delovi.append(recenica)
+            continue
+            
+        tokeni = re.split(r'([^\W\d_]+)', recenica, flags=re.UNICODE)
+        idx_p = [idx for idx, t in enumerate(tokeni) if re.match(r'^[^\W\d_]+$', t)]
+        okolina = recenica.lower()
+        
+        for i, t_idx in enumerate(idx_p):
+            trenutna_rijec = tokeni[t_idx]
+            rijec_lower = trenutna_rijec.lower()
+            
+            if i == 0 and any(rijec_lower.startswith(korijen) for korijen in IMENA_IZUZECI_KORIJENI):
+                continue
+                
+            for mapa in KONTEKST_MAPE:
+                if rijec_lower in mapa['ekavski']:
+                    skor1 = sum(1 for k in mapa['kljucevi1'] if k in okolina)
+                    skor2 = sum(1 for k in mapa['kljucevi2'] if k in okolina)
+                    
+                    if skor1 > skor2:
+                        baza_zamjene = mapa['mape_grupa1']
+                    else:
+                        baza_zamjene = mapa['mape_grupa2']
+                    
+                    if rijec_lower in baza_zamjene:
+                        tokeni[t_idx] = _sacuvaj_velika_slova(trenutna_rijec, baza_zamjene[rijec_lower])
+                        
+        novi_delovi.append("".join(tokeni))
+        
+    return "".join(novi_delovi)
 
-def process_file(inp, out):
-    if not os.path.isfile(inp):
-        print(f"Error: '{inp}' not found."); sys.exit(1)
-    with open(inp, encoding="utf-8") as f: text = f.read()
-    with open(out, "w", encoding="utf-8") as f: f.write(replace_words(text))
-    print(f"Done: '{inp}' -> '{out}'")
+def zamijeni_rijeci(tekst):
+    return _primijeni_kontekst_prozor(_primijeni_stems(_primijeni_exact(tekst)))
 
-# ─────────────────────────────────────────────────────────────────────────────
-# GLAVNA ANVIL FUNKCIJA (Ovu funkciju pozivate sa klijenta)
-# ─────────────────────────────────────────────────────────────────────────────
+def obradi_datoteku(ulaz, izlaz):
+    if not os.path.isfile(ulaz): print(f"Greška: '{ulaz}'..."); sys.exit(1)
+    with open(ulaz, encoding="utf-8") as f: t = f.read()
+    with open(izlaz, "w", encoding="utf-8") as f: f.write(zamijeni_rijeci(t))
+    print(f"Završeno: '{ulaz}' -> '{izlaz}'")
+
 @anvil.server.callable
 def ijekavizuj_tekst(ulazni_tekst):
-    """Prima ekavski tekst sa UI forme, pokreće zamjene i vraća ijekavski tekst."""
     if not ulazni_tekst:
         return ""
-    
-    # 1. Prvo primijeni EXACT listu
-    tekst = _apply_exact(ulazni_tekst)
-    
-    # 2. Zatim primijeni STEM listu
-    konacni_tekst = _apply_stems(tekst)
-    
-    return konacni_tekst
+    try:
+        return zamijeni_rijeci(ulazni_tekst)
+    except Exception as greska:
+        print(f"Greška pri obradi teksta: {greska}")
+        return ulazni_tekst
+
+if __name__ == "__main__":
+    if len(sys.argv) == 3:
+        obradi_datoteku(sys.argv[1], sys.argv[2])
