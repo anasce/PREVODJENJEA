@@ -25,7 +25,7 @@ class Form1(Form1Template):
     self.button_1.enabled = False
     #self.button_1.text = "Prevođenje..."
 
-    # Pošto je server pokrenut unaprijed dok je korisnik kucao, poziv je trenutan
+    #  Pošto je server pokrenut unaprijed dok je korisnik kucao, poziv je trenutan
     result = anvil.server.call('ijekavizuj_tekst', ulazni_tekst=self.text_area_1.text)
 
     # Prikazujemo rezultat i vraćamo dugme u funkciju
