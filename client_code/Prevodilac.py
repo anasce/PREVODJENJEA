@@ -271,7 +271,7 @@ STEMS = {
     'zaplenu': 'zapljenu',
 
     'bekstv': 'bjekstv',
-    'belešk': 'bilješk',
+    'beleš': 'bilješ',
     'bezbed': 'bezbjed',
     'cepnut': 'cjepnut',
     'dedukt': 'dedukt',
@@ -717,15 +717,13 @@ STEMS = {
 
 STEM_FRAZE = {
     'Savet za ljudska prava UN': 'Savjet za ljudska prava UN',
-
     'Savet bezbednosti UN ': 'Savjet bezbjednosti UN',
-
     'Savet Evropske unije': 'Savjet Evropske unije',
-
 
     'Bel kraljic': 'Bijel kraljic',
     'Savet Evrop': 'Savjet Evrop',
-
+    'Deda Mraz': 'Djed Mraz',
+    'Snešk Beli': 'Snješk Bijeli',
 
     'Mlečn put': 'Mlječni put',
     'Već Evrop': 'Vijeć Evrop',
@@ -969,7 +967,7 @@ def _zamijeni_frazu_match(match, korijen_ekavski, korijen_ijekavski):
     w_brojac = 0
     
     for tok in tokeni_meca:
-        if re.match(r'^[a-zA-ZčćžšđČĆŽŠĐ]+$', tok) and w_brojac < len(ekavski_words)
+        if re.match(r'^[a-zA-ZčćžšđČĆŽŠĐ]+$', tok) and w_brojac < len(ekavski_words):
             izv_w = tok
             ek_w = ekavski_words[w_brojac]
             ij_w = ijekavski_words[w_brojac]
