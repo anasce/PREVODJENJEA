@@ -13,7 +13,7 @@ EXACT = {
 
     'beležimo': 'bilježimo',
     'delićima': 'djelićima',
-    'menjačima': 'mjenjačima',
+    #'menjačima': 'mjenjačima',
     'pretrpeo': 'pretrpio',
     'razboleo': 'razbolio',
     'svetlost': 'svjetlost',
@@ -40,9 +40,9 @@ EXACT = {
     'deliću': 'djeliću',
     'delići': 'djelići',
     'drugde': 'drugdje',
-    'menjača': 'mjenjača',
-    'menjaču': 'mjenjačiu',
-    'menjači': 'mjenjači',
+   # 'menjača': 'mjenjača',
+   # 'menjaču': 'mjenjačiu',
+   # 'menjači': 'mjenjači',
     'najpre': 'najprije',
     'napred': 'naprijed',
     'nemima': 'nijemima',
@@ -70,7 +70,7 @@ EXACT = {
     'rekao': 'rekao',
     'rekla': 'rekla',
     'rečju': 'riječji',
-    'menjač': 'mjenjač',
+ #   'menjač': 'mjenjač',
     'sreda': 'srijeda',
     'svest': 'svijest',
     'uspeo': 'uspio',
@@ -293,6 +293,7 @@ STEMS = {
     'letarg': 'letarg',
     'letimi': 'letimi',
     'mleven': 'mljeven',
+    'menjač': 'mjenjač',
     'najlep': 'najljep',
     'nalepi': 'nalijepi',
     'nalepn': 'naljepn',
@@ -897,9 +898,9 @@ KONTEKST_MAPE = [
 ]
 
 def _sacuvaj_velika_slova(izv, zam):
+    if not izv or not zam: return zam
     if izv.isupper(): return zam.upper()
-    if izv.istitle(): return zam.capitalize()
-    return zam
+    return "".join(zam[i].upper() if izv[i if i < len(izv) else -1].isupper() else zam[i].lower() for i in range(len(zam)))
 
 def a_rijec(rijec, is_start, okolni_tekst):
     r_low = rijec.lower()
@@ -940,18 +941,21 @@ def a_rijec(rijec, is_start, okolni_tekst):
             return rijec[:idx] + zamjena + rijec[idx + len(korijen):]
     return rijec
 def procesiraj_recenicu(recenica, predlozak_tekst):
-    tokeni = re.split(r'([^\W\d_]+)', recenica, flags=re.U)
-    sve_rijeci = [t.lower() for t in tokeni if re.match(r'^[^\W\d_]+$', t)]
-    is_start, idx = True, 0
+    # Eksplicitno dodata naša slova sa dijakritičkim znacima u regex
+    pattern = r'([a-zA-ZčćžšđČĆŽŠĐ]+)'
     
+    tokeni = re.split(pattern, recenica)
+    sve_rijeci = [t.lower() for t in tokeni if re.match(r'^[a-zA-ZčćžšđČĆŽŠĐ]+$', t)]
+    
+    is_start, idx = True, 0
     for i, tok in enumerate(tokeni):
-        if re.match(r'^[^\W\d_]+$', tok):
-            kontekst = " ".join(sve_rijeci[max(0, idx - 4):min(len(sve_rijeci), idx + 5)])
+        if re.match(r'^[a-zA-ZčćžšđČĆŽŠĐ]+$', tok):
+            kontekst = " ". join(sve_rijeci[max(0, idx - 4): min(len(sve_rijeci), idx + 5)])
             tokeni[i] = a_rijec(tok, is_start, kontekst)
             is_start, idx = False, idx + 1
         elif tok.strip() and any(c in tok for c in ['.', '!', '?', '\n']):
             is_start = True
-                
+            
     return "".join(tokeni)
 
 
@@ -961,7 +965,7 @@ def _zamijeni_frazu_match(match, korijen_ekavski, korijen_ijekavski):
     ijekavski_words = korijen_ijekavski.split()
     
     novi_djelovi = []
-    tokeni_meca = re.split(r'([^\W\d_]+)', pronadjeno, flags=re.U)
+    tokeni_meca = re.split(r'([a-zA-ZčćžšđČĆŽŠĐ]+)', pronadjeno)
     w_brojac = 0
     
     for tok in tokeni_meca:
